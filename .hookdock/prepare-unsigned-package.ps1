@@ -19,6 +19,5 @@ $manifest.Package.Identity.Publisher =
     "CN=HookDock, OID.2.25.311729368913984317654407730594956997722=1"
 $manifest.Save($manifestPath)
 
-Write-Host "Prepared unsigned HookDock Terminal package identity$(
-    if ($Version) { " version $Version" } else { "" }
-)"
+$versionLabel = if ($Version) { " version $Version" } else { "" }
+Write-Host "Prepared unsigned HookDock Terminal package identity$versionLabel"
