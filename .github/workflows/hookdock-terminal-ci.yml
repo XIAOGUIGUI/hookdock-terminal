@@ -16,6 +16,10 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Prepare Windows 11 unsigned package identity
+        shell: pwsh
+        run: .\.hookdock\prepare-unsigned-package.ps1
+
       - name: Build companion MSIX
         shell: pwsh
         run: |
@@ -25,6 +29,7 @@ jobs:
             /p:Configuration=Release `
             /p:Platform=x64 `
             /p:WindowsTerminalBranding=Dev `
+            /p:AppxPackageSigningEnabled=false `
             /p:AppxSymbolPackageEnabled=false `
             '/t:Terminal\CascadiaPackage' `
             /m

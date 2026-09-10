@@ -30,22 +30,32 @@ When it finds the connection's session ID, it selects that tab, focuses that
 pane, and summons its window. Tab indexes are never persisted. A stale or
 unknown ID is a no-op and never creates a new tab or focuses a fallback pane.
 
-## Package identity and updates
+## Package identity and installation
 
 The companion uses the development-branding build path with its own package
 identity (`HookDock.Terminal`) and execution alias (`hookdock-terminal.exe`).
 Release builds must continue to pass `WindowsTerminalBranding=Dev`; building
 with `Release` would select Microsoft's package manifest and alias.
 
-`packaging/HookDockTerminal.appinstaller.in` enables daily App Installer update
-checks. Release signing uses a certificate whose subject is exactly
-`CN=HookDock`. Configure these repository secrets before publishing:
+Internal releases are unsigned Windows 11 test packages. Before building,
+`.hookdock/prepare-unsigned-package.ps1` appends Microsoft's required
+unsigned-package OID to the manifest Publisher, keeping this identity separate
+from any future signed package. Install the downloaded package from an elevated
+PowerShell:
 
-- `HOOKDOCK_TERMINAL_CERTIFICATE_BASE64`: base64-encoded PFX
-- `HOOKDOCK_TERMINAL_CERTIFICATE_PASSWORD`: PFX password
+```powershell
+Add-AppxPackage .\HookDockTerminal_*_x64_unsigned.msix -AllowUnsigned
+```
 
-The tag format is `hookdock-vA.B.C.D`, where `A.B.C.D` is also written into the
-MSIX and App Installer manifests.
+The tag format is `hookdock-vA.B.C.D`, where `A.B.C.D` is also written into
+the MSIX manifest. HookDock's release workflow embeds the newest Terminal MSIX
+inside the `@chenronggui/hookdock` npm tarball. As a result,
+`npx @chenronggui/hookdock download-terminal` only reads files supplied by
+the configured npm registry and does not contact GitHub at runtime.
+
+Unsigned installation is for Windows 11 internal use and does not support App
+Installer automatic updates. A future public distribution should use a trusted
+signature and a signed App Installer channel.
 
 ## Following upstream Stable
 
@@ -61,7 +71,7 @@ build workflow, and merge only after these invariants are checked:
 1. the environment markers still reach Windows and WSL children;
 2. `--focus-session` never creates a tab or window;
 3. matching still uses `ITerminalConnection.SessionId`, not a tab index;
-4. the Dev package identity and execution alias remain independent;
+4. the Dev package identity, unsigned OID, and execution alias remain independent;
 5. HookDock notification activation still launches the exact alias and GUID.
 
 Keep product features out of this fork. A narrow patch makes Stable upgrades
