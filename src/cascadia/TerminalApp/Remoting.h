@@ -20,6 +20,7 @@ namespace winrt::TerminalApp::implementation
         int32_t ExitCode() const noexcept;
         winrt::hstring ExitMessage() const;
         winrt::hstring TargetWindow() const;
+        winrt::hstring FocusSession() const;
 
         til::property<winrt::Microsoft::Terminal::TerminalConnection::ITerminalConnection> Connection;
         void Commandline(const winrt::array_view<const winrt::hstring>& value);

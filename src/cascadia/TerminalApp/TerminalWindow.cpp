@@ -1130,6 +1130,11 @@ namespace winrt::TerminalApp::implementation
         return _appArgs->ExitCode();
     }
 
+    bool TerminalWindow::FocusSession(const winrt::guid& sessionId)
+    {
+        return _root && _root->FocusSession(sessionId);
+    }
+
     void TerminalWindow::SetPersistedLayoutIdx(const uint32_t idx)
     {
         _loadFromPersistedLayoutIdx = idx;

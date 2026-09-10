@@ -201,6 +201,10 @@ void AppCommandlineArgs::_buildParser()
                     _loadPersistedLayoutIdx,
                     RS_A(L"CmdSavedLayoutArgDesc"));
 
+    _app.add_option("--focus-session",
+                    _focusSessionId,
+                    "Focus the pane whose WT_SESSION matches this GUID");
+
     // Subcommands
     _buildNewTabParser();
     _buildSplitPaneParser();
@@ -765,7 +769,8 @@ NewTerminalArgs AppCommandlineArgs::_getNewTerminalArgs(AppCommandlineArgs::NewT
 // - true if no sub commands were parsed.
 bool AppCommandlineArgs::_noCommandsProvided()
 {
-    return !(*_newTabCommand.subcommand ||
+    return _focusSessionId.empty() &&
+           !(*_newTabCommand.subcommand ||
              *_newTabShort.subcommand ||
              *_focusTabCommand ||
              *_focusTabShort ||
@@ -815,6 +820,7 @@ void AppCommandlineArgs::_resetStateToDefault()
 
     _focusPaneTarget = -1;
     _loadPersistedLayoutIdx = -1;
+    _focusSessionId.clear();
 
     // DON'T clear _launchMode here! This will get called once for every
     // subcommand, so we don't want `wt -F new-tab ; split-pane` clearing out
@@ -1003,6 +1009,13 @@ bool AppCommandlineArgs::ShouldExitEarly() const noexcept
 // - <none>
 void AppCommandlineArgs::ValidateStartupCommands()
 {
+    // --focus-session addresses an existing pane directly. It must never
+    // synthesize a new tab or window when the session no longer exists.
+    if (!_focusSessionId.empty())
+    {
+        return;
+    }
+
     // If we only have a single x-save command, then set our target to the
     // current terminal window. This will prevent us from spawning a new
     // window just to save the commandline.
@@ -1180,4 +1193,9 @@ void AppCommandlineArgs::FullResetState()
 std::string_view AppCommandlineArgs::GetTargetWindow() const noexcept
 {
     return _windowTarget;
+}
+
+std::string_view AppCommandlineArgs::GetFocusSessionId() const noexcept
+{
+    return _focusSessionId;
 }

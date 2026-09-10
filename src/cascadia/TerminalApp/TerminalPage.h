@@ -169,6 +169,7 @@ namespace winrt::TerminalApp::implementation
         void SendContentToOther(winrt::TerminalApp::RequestReceiveContentArgs args);
 
         uint32_t NumberOfTabs() const;
+        bool FocusSession(const winrt::guid& sessionId);
 
         til::property_changed_event PropertyChanged;
 

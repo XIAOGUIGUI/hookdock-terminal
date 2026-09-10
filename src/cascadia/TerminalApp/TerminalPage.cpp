@@ -2599,6 +2599,43 @@ namespace winrt::TerminalApp::implementation
         return _tabs.Size();
     }
 
+    bool TerminalPage::FocusSession(const winrt::guid& sessionId)
+    {
+        for (const auto& tab : _tabs)
+        {
+            const auto tabImpl = _GetTabImpl(tab);
+            const auto rootPane = tabImpl ? tabImpl->GetRootPane() : nullptr;
+            if (!rootPane)
+            {
+                continue;
+            }
+
+            const auto pane = rootPane->WalkTree([&](const auto& candidate) -> std::shared_ptr<Pane> {
+                if (const auto control = candidate->GetTerminalControl())
+                {
+                    if (const auto connection = control.Connection();
+                        connection && connection.SessionId() == sessionId)
+                    {
+                        return candidate;
+                    }
+                }
+                return nullptr;
+            });
+
+            if (pane)
+            {
+                uint32_t tabIndex{};
+                if (_tabs.IndexOf(tab, tabIndex))
+                {
+                    _SelectTab(tabIndex);
+                    rootPane->FocusPane(pane);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // Method Description:
     // - Called when it is determined that an existing tab or pane should be
     //   attached to our window. content represents a blob of JSON describing

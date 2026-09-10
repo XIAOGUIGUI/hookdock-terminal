@@ -1,0 +1,37 @@
+name: HookDock Terminal CI
+
+on:
+  push:
+    branches: [hookdock/stable]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-x64:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Build companion MSIX
+        shell: pwsh
+        run: |
+          Import-Module .\tools\OpenConsole.psm1
+          Set-MsBuildDevEnvironment
+          Invoke-OpenConsoleBuild `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:WindowsTerminalBranding=Dev `
+            /p:AppxSymbolPackageEnabled=false `
+            '/t:Terminal\CascadiaPackage' `
+            /m
+
+      - name: Upload unsigned CI package
+        uses: actions/upload-artifact@v4
+        with:
+          name: HookDockTerminal-x64-ci
+          path: src/cascadia/CascadiaPackage/AppPackages/**/*.msix
+          if-no-files-found: error

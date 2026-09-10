@@ -80,6 +80,7 @@ namespace winrt::TerminalApp::implementation
         int32_t SetStartupCommandline(TerminalApp::CommandlineArgs args);
         void SetStartupContent(const winrt::hstring& content, const Windows::Foundation::IReference<Windows::Foundation::Rect>& contentBounds);
         int32_t ExecuteCommandline(TerminalApp::CommandlineArgs args);
+        bool FocusSession(const winrt::guid& sessionId);
         void SetSettingsStartupArgs(const std::vector<winrt::Microsoft::Terminal::Settings::Model::ActionAndArgs>& actions);
 
         bool ShouldImmediatelyHandoffToElevated();

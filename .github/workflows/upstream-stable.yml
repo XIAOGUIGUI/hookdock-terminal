@@ -1,0 +1,83 @@
+name: Prepare Windows Terminal Stable update
+
+on:
+  schedule:
+    - cron: "17 3 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hookdock/stable
+          fetch-depth: 0
+
+      - name: Merge the newest upstream Stable tag
+        id: sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_tag="$(jq -r .tag .hookdock/upstream.json)"
+          latest_tag="$(gh api repos/microsoft/terminal/releases/latest --jq .tag_name)"
+          echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
+
+          if [[ "$latest_tag" == "$current_tag" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git remote add microsoft https://github.com/microsoft/terminal.git
+          git fetch --no-tags microsoft "refs/tags/$latest_tag:refs/tags/$latest_tag"
+          branch="automation/windows-terminal-${latest_tag#v}"
+          git switch -c "$branch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git merge --no-ff --no-commit "$latest_tag"; then
+            git merge --abort
+            title="Windows Terminal $latest_tag needs a manual rebase"
+            existing="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
+            if [[ -z "$existing" ]]; then
+              gh issue create \
+                --title "$title" \
+                --body "The weekly Stable sync conflicts with the HookDock patch surface. Rebase or merge \`$latest_tag\` manually, verify \`docs/hookdock-integration.md\`, and rerun CI."
+            fi
+            exit 1
+          fi
+
+          commit="$(git rev-parse "$latest_tag^{commit}")"
+          jq --arg tag "$latest_tag" --arg commit "$commit" \
+            '.tag = $tag | .commit = $commit' \
+            .hookdock/upstream.json > .hookdock/upstream.json.tmp
+          mv .hookdock/upstream.json.tmp .hookdock/upstream.json
+          git add .hookdock/upstream.json
+          git commit -m "Merge Windows Terminal Stable $latest_tag"
+          git push --force-with-lease origin "$branch"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open review pull request
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.sync.outputs.branch }}
+          TAG: ${{ steps.sync.outputs.latest_tag }}
+        shell: bash
+        run: |
+          existing="$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
+          if [[ -z "$existing" ]]; then
+            gh pr create \
+              --base hookdock/stable \
+              --head "$BRANCH" \
+              --title "Update HookDock Terminal to $TAG" \
+              --body "Automated merge of Microsoft Windows Terminal Stable $TAG. Publishing remains manual after CI and invariant review."
+          fi

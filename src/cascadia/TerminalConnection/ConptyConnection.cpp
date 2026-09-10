@@ -60,6 +60,8 @@ namespace winrt::Microsoft::Terminal::TerminalConnection::implementation
             // Ensure every connection has the unique identifier in the environment.
             // Convert connection Guid to string and ignore the enclosing '{}'.
             environment.as_map().insert_or_assign(L"WT_SESSION", Utils::GuidToPlainString(_sessionId));
+            environment.as_map().insert_or_assign(L"HOOKDOCK_TERMINAL", L"1");
+            environment.as_map().insert_or_assign(L"HOOKDOCK_TERMINAL_PROTOCOL", L"1");
 
             // The profile Guid does include the enclosing '{}'
             environment.as_map().insert_or_assign(L"WT_PROFILE_ID", Utils::GuidToString(_profileGuid));
@@ -89,6 +91,8 @@ namespace winrt::Microsoft::Terminal::TerminalConnection::implementation
             static constexpr std::wstring_view builtinWslEnvVars[] = {
                 L"WT_SESSION",
                 L"WT_PROFILE_ID",
+                L"HOOKDOCK_TERMINAL",
+                L"HOOKDOCK_TERMINAL_PROTOCOL",
             };
             // Misdiagnosis in MSVC 14.44.35207. No pointer arithmetic in sight.
 #pragma warning(suppress : 26481) // Don't use pointer arithmetic. Use span instead (bounds.1).

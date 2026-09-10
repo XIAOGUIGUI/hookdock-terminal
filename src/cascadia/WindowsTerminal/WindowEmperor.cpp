@@ -315,15 +315,7 @@ void WindowEmperor::HandleCommandlineArgs(int nCmdShow)
 {
     std::wstring windowClassName;
     windowClassName.reserve(64); // "Windows Terminal Preview Admin 0123456789012345 0123456789012345"
-#if defined(WT_BRANDING_RELEASE)
-    windowClassName.append(L"Windows Terminal");
-#elif defined(WT_BRANDING_PREVIEW)
-    windowClassName.append(L"Windows Terminal Preview");
-#elif defined(WT_BRANDING_CANARY)
-    windowClassName.append(L"Windows Terminal Canary");
-#else
-    windowClassName.append(L"Windows Terminal Dev");
-#endif
+    windowClassName.append(L"HookDock Terminal");
     if (Utils::IsRunningElevated())
     {
         windowClassName.append(L" Admin");
@@ -591,6 +583,38 @@ void WindowEmperor::_dispatchCommandline(winrt::TerminalApp::CommandlineArgs arg
 
     if (exitCode != 0)
     {
+        return;
+    }
+
+    if (const auto focusSession = args.FocusSession(); !focusSession.empty())
+    {
+        winrt::guid sessionId{};
+        try
+        {
+            sessionId = Utils::GuidFromPlainString(focusSession.c_str());
+        }
+        catch (...)
+        {
+            _showMessageBox(L"--focus-session requires a WT_SESSION GUID", true);
+            return;
+        }
+
+        for (const auto& window : _windows)
+        {
+            if (window->Logic().FocusSession(sessionId))
+            {
+                TerminalApp::SummonWindowBehavior summonArgs;
+                summonArgs.MoveToCurrentDesktop(true);
+                summonArgs.DropdownDuration(0);
+                summonArgs.ToMonitor(TerminalApp::MonitorBehavior::InPlace);
+                summonArgs.ToggleVisibility(false);
+                window->HandleSummon(std::move(summonArgs));
+                return;
+            }
+        }
+
+        // A stale session target must not create a new tab or focus a
+        // different pane. HookDock can continue showing its event panel.
         return;
     }
 

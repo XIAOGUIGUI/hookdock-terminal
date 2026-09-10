@@ -54,6 +54,7 @@ namespace TerminalAppLocalTests
         TEST_METHOD(ParseSplitPaneIntoArgs);
         TEST_METHOD(ParseComboCommandlineIntoArgs);
         TEST_METHOD(ParseFocusTabArgs);
+        TEST_METHOD(ParseFocusSessionArgs);
         TEST_METHOD(ParseMoveFocusArgs);
         TEST_METHOD(ParseSwapPaneArgs);
         TEST_METHOD(ParseArgumentsWithParsingTerminators);
@@ -1128,6 +1129,20 @@ namespace TerminalAppLocalTests
                 VERIFY_ARE_NOT_EQUAL("", appArgs._exitMessage);
             }
         }
+    }
+
+    void CommandlineTest::ParseFocusSessionArgs()
+    {
+        AppCommandlineArgs appArgs{};
+        std::vector<const wchar_t*> rawCommands{
+            L"hookdock-terminal.exe",
+            L"--focus-session",
+            L"7f6b3978-25f1-4519-8b02-8fe67f35991f"
+        };
+        _buildCommandlinesHelper(appArgs, 1u, rawCommands);
+
+        VERIFY_ARE_EQUAL("7f6b3978-25f1-4519-8b02-8fe67f35991f", std::string{ appArgs.GetFocusSessionId() });
+        VERIFY_ARE_EQUAL(0u, appArgs._startupActions.size());
     }
 
     void CommandlineTest::ParseMoveFocusArgs()

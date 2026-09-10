@@ -18,13 +18,13 @@
   IgnorableNamespaces="uap mp rescap uap3 uap17 desktop6 virtualization">
 
   <Identity
-    Name="WindowsTerminalDev"
-    Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+    Name="HookDock.Terminal"
+    Publisher="CN=HookDock"
     Version="0.0.1.0" />
 
   <Properties>
     <DisplayName>ms-resource:AppStoreNameDev</DisplayName>
-    <PublisherDisplayName>A Lone Developer</PublisherDisplayName>
+    <PublisherDisplayName>HookDock</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
     <!-- Older versions of Windows 10 respect this -->
     <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
@@ -69,9 +69,9 @@
       </uap:VisualElements>
 
       <Extensions>
-        <uap3:Extension Category="windows.appExecutionAlias" Executable="wtd.exe" EntryPoint="Windows.FullTrustApplication">
+        <uap3:Extension Category="windows.appExecutionAlias" Executable="hookdock-terminal.exe" EntryPoint="Windows.FullTrustApplication">
           <uap3:AppExecutionAlias>
-            <desktop:ExecutionAlias Alias="wtd.exe" />
+            <desktop:ExecutionAlias Alias="hookdock-terminal.exe" />
           </uap3:AppExecutionAlias>
         </uap3:Extension>
         <uap5:Extension Category="windows.startupTask">

@@ -55,6 +55,7 @@ namespace TerminalApp
         Int32 SetStartupCommandline(CommandlineArgs args);
         void SetStartupContent(String json, Windows.Foundation.IReference<Windows.Foundation.Rect> bounds);
         Int32 ExecuteCommandline(CommandlineArgs args);
+        Boolean FocusSession(Guid sessionId);
 
         Boolean ShouldImmediatelyHandoffToElevated();
         void HandoffToElevated();
